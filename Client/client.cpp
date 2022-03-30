@@ -50,7 +50,7 @@ void Client::slotSendToServer(QString &sData)
     QString sBuffer;
     QTextStream out(&sBuffer, QTextStream::WriteOnly);
     // datasize + '\n', data
-    out << qint64(sData.size() - sizeof(QChar)) << '\n'
+    out << qint64(sData.size()) << '\n'
         << sData;
 
     m_pSocket->write(sBuffer.toUtf8());
