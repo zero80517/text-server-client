@@ -35,8 +35,8 @@ private:
 private:
     void OperateServerTextData(QString sData);
     void InitTable(QString sTable);
-    void LoadTextFile(QString sFilename, QString sFiledata);
     QVector<Table> getvTable(QString sTable);
+    void LoadTextFile(QString sFilename, QString sFiledata);
     void SendFileToServer(QString sFullname);
     QString GetTextDataFromFile(QString sFullname);
     QString GetSelectedFilenames();
@@ -46,11 +46,11 @@ public slots:
     void slotError       (QAbstractSocket::SocketError);
     void slotReadyRead   (                            );
     void slotSendToServer(QString &sData              );
+    void deleteLater     (                            );
 
 private slots:
     void on_SaveButton_clicked();
     void on_LoadButton_clicked();
-
     void on_tableWidget_cellDoubleClicked(int row, int column);
 };
 #endif // CLIENT_H

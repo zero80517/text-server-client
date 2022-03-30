@@ -5,6 +5,7 @@
 Server::Server(int nPort, QObject *parent) : QObject(parent)
 {
     qDebug().noquote() << "Server::Server> Start Server";
+
     m_ptcpServer = new QTcpServer(this);
     if (!m_ptcpServer->listen(QHostAddress::Any, nPort))
     {
@@ -27,7 +28,7 @@ Server::Server(int nPort, QObject *parent) : QObject(parent)
 void Server::InitSavedFilesDir()
 {
     QString sLocalSavedFilesDir = QString(LOCAL_SAVED_FILES_DIR);
-    QString sApplicationDir = QDir::currentPath(); // path to .../build-server-...
+    QString sApplicationDir = QDir::currentPath(); // path to .../build-server-... or dir ./Server.exe
     m_sSavedFilesDir = QDir(QDir(sApplicationDir).filePath(sLocalSavedFilesDir)).absolutePath();
 
     QDir dirSavedFiles(m_sSavedFilesDir);
@@ -40,8 +41,8 @@ void Server::InitSavedFilesDir()
     {
         if (dirSavedFiles.mkdir(m_sSavedFilesDir))
         {
-            qDebug().noquote() << "Server::InitSavedFilesDir> Saved files directory ="
-                               << m_sSavedFilesDir << "; was created";
+            qDebug().noquote().nospace() << "Server::InitSavedFilesDir> Saved files directory = "
+                                         << m_sSavedFilesDir << "; was created";
         }
         else
         {
@@ -69,8 +70,8 @@ void Server::InitTableFile()
     {
         if (fileTable.open(QIODevice::WriteOnly))
         {
-            qDebug().noquote() << "Server::InitTableFile> Table file ="
-                               << m_sTableFilePath << "; was created";
+            qDebug().noquote().nospace() << "Server::InitTableFile> Table file = "
+                                         << m_sTableFilePath << "; was created";
         }
         else
         {
@@ -160,10 +161,7 @@ void Server::sendToClient(QTcpSocket *pSocket, const QString &sData)
     QTextStream out(&sMsg, QTextStream::WriteOnly);
     if (out.status() == QTextStream::Ok)
     {
-//        // datasize - sizeof(QChar), data
-//        out << qint64(sData.length() - sizeof(QChar))  << (QChar)'\n'
-//            << sData;
-        // datasize - sizeof(QChar), data
+        // datasize + '\n', data
         out << qint64(sData.length())  << (QChar)'\n'
             << sData;
 
@@ -178,68 +176,11 @@ void Server::sendToClient(QTcpSocket *pSocket, const QString &sData)
 // Done & works! Very dangerous part!
 void Server::slotReadClient()
 {
-/*
-//    qDebug().noquote() << "\nServer::slotReadClient> Read msg from client";
-//    QTcpSocket* pSocket = (QTcpSocket*)sender();
-//    QString sData;
-//    qint64 nMsgSize = -1;
-
-//    QTextStream in(pSocket);
-//    if (in.status() == QTextStream::Ok)
-//    {
-//        // get datasize first
-//        if (pSocket->bytesAvailable() && nMsgSize == -1)
-//        {
-//            nMsgSize = in.readLine().toLongLong();
-//            qDebug().noquote() << "Server::slotReadClient> Msg size ="
-//                               << nMsgSize;
-//        }
-
-//        while (pSocket->bytesAvailable() < nMsgSize - qint64(sizeof(qint64))) {
-//            if (!pSocket->waitForReadyRead(100))
-//            {
-//                qDebug().noquote() << "Server::slotReadClient> Too long to get client's response, break";
-//                pSocket->disconnectFromHost();
-//                break;
-//            }
-//        }
-
-//        sData = in.readAll();
-
-//        OperateClientTextData(pSocket, sData);
-//    }
-//    else
-//    {
-//        qDebug().noquote() << "Error Server::slotReadClient> Can't create textstream";
-//    }
-*/
-
-    qDebug().noquote() << "\nClient::slotReadyRead> Read msg from server";
-
     QTcpSocket* pSocket = (QTcpSocket*)sender();
-    QString sData;
-    qint64 nMsgSize = 0;
-
     QTextStream in(pSocket);
-    if (in.status() == QTextStream::Ok)
-    {
-        if (nMsgSize == 0)
-        {
-            nMsgSize = in.readLine().toLongLong();
-            qDebug().noquote() << "Server::slotReadClient> Msg size =" << nMsgSize;
-        }
-        sData.append(in.readAll());
-        while (pSocket->bytesAvailable() > 0)
-        {
-            sData.append(in.readAll());
-        }
+    QString sData = in.readAll();
 
-        OperateClientTextData(pSocket, sData);
-    }
-    else
-    {
-        qDebug().noquote() << "Error Server::slotReadClient> Can't create textstream";
-    }
+    OperateClientTextData(pSocket, sData);
 }
 
 // Done & works!
@@ -250,39 +191,50 @@ void Server::OperateClientTextData(QTcpSocket *pSocket, QString &sData)
     QTextStream in(&sData, QTextStream::ReadOnly);
     if (in.status() == QTextStream::Ok)
     {
-        // The second parameter is flag
-        nFlag = in.readLine().toLongLong();
+        while (!in.atEnd())
+        {
+            // The first paramater is msg size plus QChar on flag and plus QChar on '\n'
+            // So minus 2 to get msg size
+            qint64 nMsgSize = in.readLine().toLongLong() - 2;
 
-        qDebug().noquote() << "Server::OperateClientTextData> Selected flag is" << nFlag;
-        qDebug().noquote() << "Server::OperateClientTextData> sData length" << sData.length();
+            // The second parameter is flag
+            nFlag = in.readLine().toLongLong();
 
-        // operate flag
-        if (nFlag == qint64(Flag::Empty))
-        {
-            qDebug().noquote() << "Error Server::OperateClientTextData> Got empty flag, break";
-        }
-        else if (nFlag == qint64(Flag::Save))
-        {
-            QString sFilename = in.readLine();
-            QString sFiledata = in.readAll();
-            qDebug().noquote() << "Server::OperateClientTextData> Save client's file with name" << sFilename;
-            SaveClientTextFile(sFilename, sFiledata);
-            InsertFileIntoTable(sFilename);
-            // Update table on one client?
-            //InitTableOnClient(pSocket);
+            qDebug().noquote() << "Server::OperateClientTextData> Selected flag is" << nFlag;
+            qDebug().noquote() << "Server::OperateClientTextData> sData length" << sData.length();
 
-            // Update table on all clients
-            UpdateTableAllClients();
-        }
-        else if (nFlag == qint64(Flag::Load))
-        {
-            qDebug().noquote() << "Server::OperateClientTextData> Load files from server to client";
-            QString sFilenames = in.readAll();
-            LoadTextFilesToClient(pSocket, sFilenames);
-        }
-        else
-        {
-            qDebug().noquote() << "Error Server::OperateClientTextData> Got incorrect flag";
+            // operate flag
+            if (nFlag == qint64(Flag::Empty))
+            {
+                qDebug().noquote() << "Error Server::OperateClientTextData> Got empty flag, break";
+                break;
+            }
+            else if (nFlag == qint64(Flag::Save))
+            {
+                // msg = "filename\nfiledata"
+                QString sFilename = in.readLine();
+                QString sFiledata = in.readAll();
+                qDebug().noquote() << "Server::OperateClientTextData> Save client's file with name" << sFilename;
+                SaveClientTextFile(sFilename, sFiledata);
+                InsertFileIntoTable(sFilename);
+                // Update table on one client?
+                //InitTableOnClient(pSocket);
+
+                // Update table on all clients
+                UpdateTableAllClients();
+            }
+            else if (nFlag == qint64(Flag::Load))
+            {
+                // msg = "filename\nfilename\n..."
+                qDebug().noquote() << "Server::OperateClientTextData> Load files from server to client";
+                QString sFilenames = in.readAll();
+                LoadTextFilesToClient(pSocket, sFilenames);
+            }
+            else
+            {
+                qDebug().noquote() << "Error Server::OperateClientTextData> Got incorrect flag, break";
+                break;
+            }
         }
     }
     else
@@ -300,9 +252,9 @@ void Server::SaveClientTextFile(QString sFilename, QString sFiledata)
     if (file.open(QFile::WriteOnly))
     {
         file.write(sFiledata.toUtf8());
-        qDebug().noquote() << "Server::SaveClientTextFile>"
-                           << "saved file =" << sFullname
-                           << "; saved data =" << sFiledata;
+        qDebug().noquote().nospace() << "Server::SaveClientTextFile> "
+                                     << "saved file = " << sFullname
+                                     << "; saved data = " << sFiledata;
     }
     else
     {
@@ -401,3 +353,5 @@ void Server::SendLoadTableFileToClient(QTcpSocket *pSocket, QString sFilenames)
         qDebug() << "Error Server::SendLoadTableFileToClient> Can't create textstream";
     }
 }
+
+// Mb add ~Server method later, I am done...

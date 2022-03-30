@@ -21,9 +21,6 @@ private:
     QString     m_sTableFilePath;
 
 private:
-    void sendToClient(QTcpSocket *pSocket, const QString &sData);
-
-private:
     void InitSavedFilesDir();
     void InitTableFile();
     void InitTableOnClient(QTcpSocket *pSocket);
@@ -40,6 +37,7 @@ public:
     explicit Server(int nPort, QObject *parent = nullptr);
 
 public slots:
+            void sendToClient(QTcpSocket *pSocket, const QString &sData);
     virtual void slotNewConnection();
             void slotReadClient();
 

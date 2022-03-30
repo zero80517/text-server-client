@@ -3,10 +3,10 @@
 
 enum class Flag
 {
-    Empty,
-    Init,
-    Save,
-    Load
+    Empty,  // no flag
+    Init,   // init table on client
+    Save,   // save file on server
+    Load    // load files on client
 };
 
 #endif // FLAG_H

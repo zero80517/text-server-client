@@ -3,7 +3,8 @@
 
 #include <QString>
 
-// QTableWidget numbers itself
+// QTableWidget numbers itself, so table's header columns will be:
+// №, Creation's Date/Time, Filename, Link
 struct Table
 {
     QString sCreationDateTime;

@@ -49,127 +49,16 @@ void Client::slotSendToServer(QString &sData)
 {
     QString sBuffer;
     QTextStream out(&sBuffer, QTextStream::WriteOnly);
-    // datasize - sizeof(QChar), data
+    // datasize + '\n', data
     out << qint64(sData.size() - sizeof(QChar)) << '\n'
         << sData;
 
     m_pSocket->write(sBuffer.toUtf8());
 }
 
-// Done & works!, very dangerous part
+// Done & works! Very dangerous part!
 void Client::slotReadyRead()
 {
-/*
-//    qDebug().noquote() << "\nClient::slotReadyRead> Read msg from server";
-
-//    QTextStream in(m_pSocket);
-//    QString sData;
-//    qint64 nMsgSize = -1;
-//    if (in.status() == QTextStream::Ok)
-//    {
-//        qDebug().noquote() << "m_pSocket->bytesAvailable() =" << m_pSocket->bytesAvailable();
-//        // get datasize first
-//        if (m_pSocket->bytesAvailable() && nMsgSize == -1)
-//        {
-//            qDebug().noquote() << "m_pSocket->bytesAvailable() =" << m_pSocket->bytesAvailable();
-//            nMsgSize = in.readLine().toLongLong();
-//            qDebug().noquote() << "Client::slotReadyRead> Msg size ="
-//                               << nMsgSize;
-//            qDebug().noquote() << "m_pSocket->bytesAvailable() =" << m_pSocket->bytesAvailable();
-//        }
-
-//        qDebug().noquote() << "m_pSocket->bytesAvailable() =" << m_pSocket->bytesAvailable();
-//        while (m_pSocket->bytesAvailable() < nMsgSize - qint64(sizeof(qint64))) {
-//            qDebug().noquote() << "m_pSocket->bytesAvailable() =" << m_pSocket->bytesAvailable();
-//            if (!m_pSocket->waitForReadyRead(100))
-//            {
-//                qDebug().noquote() << "Client::slotReadyRead> Too long to get server's response, break";
-//                m_pSocket->disconnectFromHost();
-//                break;
-//            }
-//        }
-
-//        qDebug().noquote() << "m_pSocket->bytesAvailable() =" << m_pSocket->bytesAvailable();
-
-//        sData = in.readAll();
-
-//        OperateServerTextData(sData);
-//    }
-//    else
-//    {
-//        qDebug().noquote() << "Error Client::slotReadyRead> Can't create textstream";
-//    }
-*/
-
-/*
-//    qDebug().noquote() << "\nClient::slotReadyRead> Read msg from server";
-
-//    QTextStream in(m_pSocket);
-//    QString sData;
-//    qint64 nMsgSize = 0;
-//    if (in.status() == QTextStream::Ok)
-//    {
-//        if (nMsgSize == 0)
-//        {
-//            nMsgSize = in.readLine().toLongLong();
-//            qDebug().noquote() << "Client::slotReadyRead> Msg size =" << nMsgSize;
-//        }
-//        sData.append(in.readAll());
-//        while (m_pSocket->bytesAvailable() > 0)
-//        {
-//            sData.append(in.readAll());
-//        }
-
-//        OperateServerTextData(sData);
-//    }
-//    else
-//    {
-//        qDebug().noquote() << "Error Client::slotReadyRead> Can't create textstream";
-//    }
-*/
-
-/*
-//    QTcpSocket* pSocket = (QTcpSocket*)sender();
-//    QTextStream in(pSocket);
-//    qint64 nNextBlockSize = 0;
-
-//    if (in.status() == QTextStream::Ok)
-//    {
-//        qDebug() << "read...";
-
-//        for (;;)
-//        {
-//            qDebug() << "pSocket->bytesAvailable() =" << pSocket->bytesAvailable();
-//            if (nNextBlockSize == qint64(0))
-//            {
-//                qDebug() << "nextBlockSize = 0";
-//                if (pSocket->bytesAvailable() < qint64(8))
-//                {
-//                    qDebug() << "Data < 8, break";
-//                    break;
-//                }
-//                nNextBlockSize = in.readLine().toLongLong();
-//                qDebug() << "nextBlockSize = " << nNextBlockSize;
-//            }
-//            qDebug() << "pSocket->bytesAvailable() =" << pSocket->bytesAvailable();
-//            if (pSocket->bytesAvailable() < nNextBlockSize)
-//            {
-//                qDebug() << "Data not full, break";
-//                //break;
-//            }
-
-//            QString sData = in.read(nNextBlockSize);
-//            OperateServerTextData(sData);
-//            nNextBlockSize = qint64(0);
-//            qDebug() << in.atEnd();
-//        }
-//    }
-//    else
-//    {
-//        qDebug().noquote() << "DataStream error";
-//    }
-*/
-
     QTcpSocket* pSocket = (QTcpSocket*)sender();
     QTextStream in(pSocket);
     QString sData = in.readAll();
@@ -180,47 +69,6 @@ void Client::slotReadyRead()
 // Done & works!
 void Client::OperateServerTextData(QString sData)
 {
-    /*
-//    qint64 nFlag = (qint64) Flag::Empty;
-
-//    QTextStream in(&sData, QTextStream::ReadOnly);
-//    if (in.status() == QTextStream::Ok)
-//    {
-//        // The second parameter is flag
-//        nFlag = in.readLine().toLongLong();
-
-//        qDebug().noquote() << "Client::OperateServerTextData> Selected flag is" << nFlag;
-//        qDebug().noquote() << "Client::OperateServerTextData> sData length" << sData.length();
-
-//        // operate flag
-//        if (nFlag == qint64(Flag::Empty))
-//        {
-//            qDebug().noquote() << "Error Client::OperateServerTextData> Got empty flag, break";
-//        }
-//        else if (nFlag == qint64(Flag::Init))
-//        {
-//            qDebug().noquote() << "Client::OperateServerTextData> Init table";
-//            QString sTable = in.readAll();
-//            InitTable(sTable);
-//        }
-//        else if (nFlag == qint64(Flag::Load))
-//        {
-//            qDebug().noquote() << "Client::OperateServerTextData> Load file from server";
-//            QString sFilename = in.readLine();
-//            QString sFiledata = in.readAll();
-//            LoadTextFile(sFilename, sFiledata);
-//        }
-//        else
-//        {
-//            qDebug().noquote() << "Error Client::OperateServerTextData> Got incorrect flag";
-//        }
-//    }
-//    else
-//    {
-//        qDebug().noquote() << "Error Client::OperateServerTextData> can't creat textstream";
-//    }
-    */
-
     qint64 nFlag = (qint64) Flag::Empty;
 
     QTextStream in(&sData, QTextStream::ReadOnly);
@@ -228,8 +76,10 @@ void Client::OperateServerTextData(QString sData)
     {
         while (!in.atEnd())
         {
-            // The first paramater is stringsize minus QChar on flag minus QChar on '\n'
-            qint64 size = in.readLine().toLongLong() - 2;
+            // The first paramater is msg size plus QChar on flag and plus QChar on '\n'
+            // So minus 2 to get msg size
+            qint64 nMsgSize = in.readLine().toLongLong() - 2;
+
             // The second parameter is flag
             nFlag = in.readLine().toLongLong();
 
@@ -240,24 +90,28 @@ void Client::OperateServerTextData(QString sData)
             if (nFlag == qint64(Flag::Empty))
             {
                 qDebug().noquote() << "Error Client::OperateServerTextData> Got empty flag, break";
+                break;
             }
             else if (nFlag == qint64(Flag::Init))
             {
                 qDebug().noquote() << "Client::OperateServerTextData> Init table";
+                // msg = "row1\nrow2\n..."
                 QString sTable = in.readAll();
                 InitTable(sTable);
             }
             else if (nFlag == qint64(Flag::Load))
             {
                 qDebug().noquote() << "Client::OperateServerTextData> Load file from server";
+                // msg = "filename\nfiledata"
                 QString sFilename = in.readLine();
-                // minus len filename and minus 1 to compensate '\n'
-                QString sFiledata = in.read(size - (sFilename.length() + 1));
+                // minus len filename and minus 1 to not count '\n'
+                QString sFiledata = in.read(nMsgSize - (sFilename.size() + 1));
                 LoadTextFile(sFilename, sFiledata);
             }
             else
             {
-                qDebug().noquote() << "Error Client::OperateServerTextData> Got incorrect flag";
+                qDebug().noquote() << "Error Client::OperateServerTextData> Got incorrect flag, break";
+                break;
             }
         }
     }
@@ -338,14 +192,14 @@ void Client::LoadTextFile(QString sFilename, QString sFiledata)
     if (file.open(QFile::WriteOnly))
     {
         file.write(sFiledata.toUtf8());
-        qDebug() << "Client::LoadTextFile>"
-                 << "saved file =" << sFullname
-                 << "; saved data =" << sFiledata;
+        qDebug().noquote().nospace() << "Client::LoadTextFile>"
+                                     << "saved file = " << sFullname
+                                     << "; saved data = " << sFiledata;
     }
     else
     {
-        qDebug() << "Error Client::LoadTextFile> Unable to create file"
-                 << sFullname << "to save data";
+        qDebug().noquote().nospace() << "Error Client::LoadTextFile> Unable to create file"
+                                     << sFullname << "to save data";
     }
     file.close();
 }
@@ -358,6 +212,9 @@ void Client::on_SaveButton_clicked()
                                                      m_sLoadDir,
                                                      "Text files (*.txt)"
                                                     );
+    if (sFullname.isEmpty())
+        return;
+
     QFileInfo fi(sFullname);
     QString sFilename = fi.fileName();
 
@@ -376,7 +233,7 @@ void Client::SendFileToServer(QString sFullname)
     QString sData;
     QTextStream out(&sData, QTextStream::WriteOnly);
 
-    // flag, filename, data
+    // flag + '\n', filename + '\n', data
     out << qint64(Flag::Save) << '\n'
         << sFilename << '\n'
         << GetTextDataFromFile(sFullname);
@@ -425,14 +282,14 @@ void Client::on_LoadButton_clicked()
     QTextStream out(&sData, QTextStream::WriteOnly);
     if (out.status() == QTextStream::Ok)
     {
-        // flag, selected filenames
+        // flag + '\n', selected filenames
         out << qint64(Flag::Load) << '\n'
             << sItems;
-        qDebug() << QStringLiteral("Client::on_LoadButton_clicked> Selected flag is %1").arg(qint64(Flag::Load));
+        qDebug().noquote() << QStringLiteral("Client::on_LoadButton_clicked> Selected flag is %1").arg(qint64(Flag::Load));
     }
     else
     {
-        qDebug() << "Error Client::on_LoadButton_clicked> Can't create textstream";
+        qDebug().noquote() << "Error Client::on_LoadButton_clicked> Can't create textstream";
     }
 
     slotSendToServer(sData);
@@ -460,17 +317,17 @@ QString Client::GetSelectedFilenames()
             {
                 sFilename = pItem->text();
                 out << sFilename << '\n';
-                qDebug() << "Client::GetSelectedFilenames> selected item =" << sFilename;
+                qDebug().noquote() << "Client::GetSelectedFilenames> selected item =" << sFilename;
             }
             else
             {
-                qDebug() << "Error Client::GetSelectedFilenames> selected wrong item, select item in filename column";
+                qDebug().noquote() << "Error Client::GetSelectedFilenames> selected wrong item, select item in filename column";
             }
         }
     }
     else
     {
-        qDebug() << "Error Client::GetSelectedFilenames> Can't open textstream to fill sItems";
+        qDebug().noquote() << "Error Client::GetSelectedFilenames> Can't open textstream to fill sItems";
     }
 
     return sItems;
@@ -479,7 +336,7 @@ QString Client::GetSelectedFilenames()
 // Done & works!
 void Client::on_tableWidget_cellDoubleClicked(int row, int column)
 {
-    // third column with index 2 is "Link"
+    // third column with index 2(i.e. columns are numbered from 0) is "Link"
     if (column == 2)
     {
         QTableWidgetItem *pItem = m_pTableWidget->item(row, column);
@@ -488,7 +345,13 @@ void Client::on_tableWidget_cellDoubleClicked(int row, int column)
     }
 }
 
-// Done & works! But add delete allocated data
+void Client::deleteLater()
+{
+   qDebug().noquote() << "Client::deleteLater> Client disconnected with descriptor"
+                      << m_pSocket->socketDescriptor();
+}
+
+// Done & works!
 Client::~Client()
 {
     delete ui;
