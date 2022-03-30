@@ -125,7 +125,7 @@ void Server::InitTableOnClient(QTcpSocket *pSocket)
     sendToClient(pSocket, sData);
 }
 
-// Done & works! But add link
+// Done & works!
 void Server::InsertFileIntoTable(QString sFilename)
 {
     QFile file(m_sTableFilePath);
@@ -133,7 +133,9 @@ void Server::InsertFileIntoTable(QString sFilename)
     if (file.open(QFile::Append))
     {
         QTextStream out(&file);
-        out << QDateTime::currentDateTime().toString("dd.MM.yyyy/hh:mm:ss") << "," << sFilename << '\n';
+        out << QDateTime::currentDateTime().toString("dd.MM.yyyy/hh:mm:ss") << ","
+            << sFilename << ","
+            << "file:///" + QDir(m_sSavedFilesDir).filePath(sFilename) << '\n';
     }
     else
     {
@@ -298,7 +300,7 @@ void Server::SaveClientTextFile(QString sFilename, QString sFiledata)
     file.close();
 }
 
-// Done
+// Done & works!
 void Server::LoadTextFilesToClient(QTcpSocket *pSocket, QString sFilenames)
 {
     QTextStream in(&sFilenames, QTextStream::ReadOnly);
@@ -323,7 +325,7 @@ void Server::LoadTextFilesToClient(QTcpSocket *pSocket, QString sFilenames)
     }
 }
 
-// Done
+// Done & works!
 void Server::SendFileToClient(QTcpSocket *pSocket, QString sFilename)
 {
     QString sData;
@@ -343,7 +345,7 @@ void Server::SendFileToClient(QTcpSocket *pSocket, QString sFilename)
     }
 }
 
-// Done
+// Done & works!
 QString Server::LoadFileDataInString(QString sFilename)
 {
     QString str;
@@ -364,7 +366,7 @@ QString Server::LoadFileDataInString(QString sFilename)
     return str;
 }
 
-// Done
+// Done & works!
 void Server::SendLoadTableFileToClient(QTcpSocket *pSocket, QString sFilenames)
 {
     if (sFilenames.isEmpty())

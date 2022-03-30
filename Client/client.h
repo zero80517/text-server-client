@@ -7,6 +7,8 @@
 #include <QtWidgets>
 #include <QDir>
 #include <QFileDialog>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "../Server/flag.h"
 #include "table.h"
@@ -49,5 +51,6 @@ private slots:
     void on_SaveButton_clicked();
     void on_LoadButton_clicked();
 
+    void on_tableWidget_cellDoubleClicked(int row, int column);
 };
 #endif // CLIENT_H

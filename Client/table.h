@@ -8,6 +8,7 @@ struct Table
 {
     QString sCreationDateTime;
     QString sFilename;
+    QString sLink;
 };
 
 #endif // TABLE_H

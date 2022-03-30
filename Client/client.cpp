@@ -267,7 +267,7 @@ void Client::OperateServerTextData(QString sData)
     }
 }
 
-// Done & works! But add link later
+// Done & works!
 void Client::InitTable(QString sTable)
 {
     QVector<Table> vTable = getvTable(sTable);
@@ -292,12 +292,16 @@ void Client::InitTable(QString sTable)
         pItem = new QTableWidgetItem(i->sFilename);
         m_pTableWidget->setItem(row, col, pItem);
 
+        ++col;
+        pItem = new QTableWidgetItem(i->sLink);
+        m_pTableWidget->setItem(row, col, pItem);
+
         ++row;
         col = 0;
     }
 }
 
-// Done & works! But add link later
+// Done & works!
 QVector<Table> Client::getvTable(QString sTable)
 {
     QVector<Table> vTable;
@@ -313,6 +317,7 @@ QVector<Table> Client::getvTable(QString sTable)
 
             tableTmp.sCreationDateTime = lstLine[0];
             tableTmp.sFilename = lstLine[1];
+            tableTmp.sLink = lstLine[2];
             vTable.push_back(tableTmp);
         }
     }
@@ -324,7 +329,7 @@ QVector<Table> Client::getvTable(QString sTable)
     return vTable;
 }
 
-// Done
+// Done & works!
 void Client::LoadTextFile(QString sFilename, QString sFiledata)
 {
     QString sFullname = QDir(m_sLoadDir).filePath(sFilename);
@@ -397,14 +402,20 @@ QString Client::GetTextDataFromFile(QString sFullname)
     return sFiledata;
 }
 
-// Done
+// Done & works!
 void Client::on_LoadButton_clicked()
 {
-    m_sLoadDir = QFileDialog::getExistingDirectory(this, "Open Directory",
-                                                   m_sLoadDir,
-                                                   QFileDialog::ShowDirsOnly
-                                                   | QFileDialog::DontResolveSymlinks
-                                                  );
+    QString sNewLoadDir = QFileDialog::getExistingDirectory(this,
+                                                            "Open Directory",
+                                                            m_sLoadDir,
+                                                            QFileDialog::ShowDirsOnly
+                                                            | QFileDialog::DontResolveSymlinks
+                                                           );
+
+    if (sNewLoadDir.isEmpty())
+        return;
+
+    m_sLoadDir = sNewLoadDir;
 
     QString sItems = GetSelectedFilenames();
     if (sItems.isEmpty())
@@ -427,7 +438,7 @@ void Client::on_LoadButton_clicked()
     slotSendToServer(sData);
 }
 
-// Done
+// Done & works!
 QString Client::GetSelectedFilenames()
 {
     QString sItems;
@@ -463,6 +474,18 @@ QString Client::GetSelectedFilenames()
     }
 
     return sItems;
+}
+
+// Done & works!
+void Client::on_tableWidget_cellDoubleClicked(int row, int column)
+{
+    // third column with index 2 is "Link"
+    if (column == 2)
+    {
+        QTableWidgetItem *pItem = m_pTableWidget->item(row, column);
+        QString sLink = pItem->text();
+        QDesktopServices::openUrl(QUrl(sLink, QUrl::TolerantMode));
+    }
 }
 
 // Done & works! But add delete allocated data
