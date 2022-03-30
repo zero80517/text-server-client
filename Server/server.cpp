@@ -82,7 +82,7 @@ void Server::InitTableFile()
     fileTable.close();
 }
 
-// Done & works! But add vsSocket to update table on all sockets
+// Done & works!
 void Server::slotNewConnection()
 {
     QTcpSocket* pSocket = m_ptcpServer->nextPendingConnection();
@@ -93,6 +93,7 @@ void Server::slotNewConnection()
                        << pSocket->socketDescriptor();
 
     InitTableOnClient(pSocket);
+    m_vpSocket.push_back(pSocket);
 }
 
 // Done & works!
@@ -123,6 +124,14 @@ void Server::InitTableOnClient(QTcpSocket *pSocket)
     fileTable.close();
 
     sendToClient(pSocket, sData);
+}
+
+void Server::UpdateTableAllClients()
+{
+    for (int i = 0; i < m_vpSocket.count(); i++)
+    {
+        InitTableOnClient(m_vpSocket[i]);
+    }
 }
 
 // Done & works!
@@ -233,7 +242,7 @@ void Server::slotReadClient()
     }
 }
 
-// Done & works! But add functions to multiple sockets
+// Done & works!
 void Server::OperateClientTextData(QTcpSocket *pSocket, QString &sData)
 {
     qint64 nFlag = (qint64) Flag::Empty;
@@ -260,7 +269,10 @@ void Server::OperateClientTextData(QTcpSocket *pSocket, QString &sData)
             SaveClientTextFile(sFilename, sFiledata);
             InsertFileIntoTable(sFilename);
             // Update table on one client?
-            InitTableOnClient(pSocket);
+            //InitTableOnClient(pSocket);
+
+            // Update table on all clients
+            UpdateTableAllClients();
         }
         else if (nFlag == qint64(Flag::Load))
         {

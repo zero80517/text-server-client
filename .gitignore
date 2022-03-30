@@ -53,3 +53,8 @@ compile_commands.json
 
 # My test files to check the correct operation of the program
 /Tests
+
+# Other trash
+*.exe
+*.txt
+*/.qmake.stash

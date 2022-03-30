@@ -16,6 +16,7 @@ class Server : public QObject
 
 private:
     QTcpServer* m_ptcpServer;
+    QVector<QTcpSocket *> m_vpSocket;
     QString     m_sSavedFilesDir;
     QString     m_sTableFilePath;
 
@@ -26,6 +27,7 @@ private:
     void InitSavedFilesDir();
     void InitTableFile();
     void InitTableOnClient(QTcpSocket *pSocket);
+    void UpdateTableAllClients();
     void InsertFileIntoTable(QString sFilename);
     void OperateClientTextData(QTcpSocket *pSocket, QString &sData);
     void SaveClientTextFile(QString sFilename, QString sFiledata);
