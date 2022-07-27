@@ -5,3 +5,7 @@
 The server saves the client's text files to ``SavedFiles`` and inserts the creation's date/time, filename and a link to this file in ``Table.txt``.
 The client can load saved text files by selecting a name in the filename column.
 The selected names will be loaded to ``LoadTable.txt`` file, where the file names will be written.
+
+**UPD**
+
+There is [updated version](https://github.com/zero80517/server-client) that can handle loading non-text files.
